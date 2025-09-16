@@ -77,6 +77,66 @@ ha_vpn_config:
         advertised_route_priority: 100
 ```
 
+### gcloud Commands
+```bash
+# Create HA VPN Gateway
+gcloud compute vpn-gateways create production-ha-vpn-gateway \
+    --network=production-vpc \
+    --region=us-central1
+
+# Create Cloud Router for dynamic routing
+gcloud compute routers create vpn-router \
+    --network=production-vpc \
+    --region=us-central1 \
+    --asn=65001
+
+# Create external VPN gateway (represents on-premises)
+gcloud compute external-vpn-gateways create on-premises-gateway \
+    --interfaces=0=203.0.113.1,1=203.0.113.2
+
+# Create VPN tunnels
+gcloud compute vpn-tunnels create tunnel-1 \
+    --peer-external-gateway=on-premises-gateway \
+    --peer-external-gateway-interface=0 \
+    --region=us-central1 \
+    --ike-version=2 \
+    --shared-secret="your-shared-secret-1" \
+    --router=vpn-router \
+    --vpn-gateway=production-ha-vpn-gateway \
+    --vpn-gateway-interface=0
+
+gcloud compute vpn-tunnels create tunnel-2 \
+    --peer-external-gateway=on-premises-gateway \
+    --peer-external-gateway-interface=1 \
+    --region=us-central1 \
+    --ike-version=2 \
+    --shared-secret="your-shared-secret-2" \
+    --router=vpn-router \
+    --vpn-gateway=production-ha-vpn-gateway \
+    --vpn-gateway-interface=1
+
+# Create BGP sessions
+gcloud compute routers add-interface vpn-router \
+    --interface-name=tunnel-1-interface \
+    --ip-address=169.254.1.1 \
+    --mask-length=30 \
+    --vpn-tunnel=tunnel-1 \
+    --region=us-central1
+
+gcloud compute routers add-bgp-peer vpn-router \
+    --peer-name=tunnel-1-peer \
+    --interface=tunnel-1-interface \
+    --peer-ip-address=169.254.1.2 \
+    --peer-asn=65002 \
+    --region=us-central1
+
+# Check VPN tunnel status
+gcloud compute vpn-tunnels describe tunnel-1 --region=us-central1
+
+# List all VPN gateways
+gcloud compute vpn-gateways list
+```
+
 ---
 
 ## Related Services

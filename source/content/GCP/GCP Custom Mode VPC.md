@@ -80,6 +80,60 @@ custom_vpc:
       private_google_access: true
 ```
 
+### gcloud Commands
+```bash
+# Create custom mode VPC
+gcloud compute networks create production-custom-vpc \
+    --subnet-mode=custom \
+    --bgp-routing-mode=regional \
+    --description="Production VPC with custom subnet configuration"
+
+# Create web tier subnet with secondary ranges
+gcloud compute networks subnets create web-tier-us-central1 \
+    --network=production-custom-vpc \
+    --range=10.1.0.0/24 \
+    --region=us-central1 \
+    --secondary-range=pods=172.16.0.0/16,services=192.168.0.0/20 \
+    --enable-private-ip-google-access \
+    --enable-flow-logs
+
+# Create app tier subnet
+gcloud compute networks subnets create app-tier-us-central1 \
+    --network=production-custom-vpc \
+    --range=10.2.0.0/24 \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+
+# Create data tier subnet
+gcloud compute networks subnets create data-tier-us-central1 \
+    --network=production-custom-vpc \
+    --range=10.3.0.0/24 \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+
+# Create firewall rules for each tier
+gcloud compute firewall-rules create allow-web-tier \
+    --network=production-custom-vpc \
+    --allow=tcp:80,tcp:443 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=web-tier
+
+gcloud compute firewall-rules create allow-app-tier \
+    --network=production-custom-vpc \
+    --allow=tcp:8080 \
+    --source-tags=web-tier \
+    --target-tags=app-tier
+
+gcloud compute firewall-rules create allow-data-tier \
+    --network=production-custom-vpc \
+    --allow=tcp:3306,tcp:5432 \
+    --source-tags=app-tier \
+    --target-tags=data-tier
+
+# List all subnets in the VPC
+gcloud compute networks subnets list --filter="network:production-custom-vpc"
+```
+
 ---
 
 ## Related Services

@@ -68,6 +68,56 @@ auto_vpc:
   # etc.
 ```
 
+### gcloud Commands
+```bash
+# Create auto mode VPC (subnets created automatically)
+gcloud compute networks create auto-mode-network \
+    --subnet-mode=auto \
+    --bgp-routing-mode=regional \
+    --description="Automatically created subnets in all regions"
+
+# List automatically created subnets
+gcloud compute networks subnets list --filter="network:auto-mode-network"
+
+# Convert auto mode to custom mode (one-way operation)
+gcloud compute networks update auto-mode-network \
+    --switch-to-custom-subnet-mode
+
+# Add custom subnet after conversion to custom mode
+gcloud compute networks subnets create custom-subnet \
+    --network=auto-mode-network \
+    --range=172.16.0.0/24 \
+    --region=us-west1 \
+    --enable-private-ip-google-access
+
+# Create firewall rule for auto mode VPC
+gcloud compute firewall-rules create allow-internal-auto \
+    --network=auto-mode-network \
+    --allow=tcp,udp,icmp \
+    --source-ranges=10.128.0.0/9 \
+    --description="Allow communication between auto-created subnets"
+
+# Create firewall rule for SSH access
+gcloud compute firewall-rules create allow-ssh-auto \
+    --network=auto-mode-network \
+    --allow=tcp:22 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=ssh-enabled
+
+# Create firewall rule for HTTP/HTTPS
+gcloud compute firewall-rules create allow-http-https-auto \
+    --network=auto-mode-network \
+    --allow=tcp:80,tcp:443 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=web-server
+
+# Describe the auto mode network
+gcloud compute networks describe auto-mode-network
+
+# Delete auto mode VPC (must delete all resources first)
+gcloud compute networks delete auto-mode-network
+```
+
 ---
 
 ## Related Services

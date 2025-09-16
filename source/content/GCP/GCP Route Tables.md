@@ -22,6 +22,60 @@ Service: "Route Tables"
 
 ## Configuration Examples
 
+### gcloud Commands
+```bash
+# Create custom route to on-premises network via VPN
+gcloud compute routes create route-to-onprem \
+    --network=production-vpc \
+    --destination-range=192.168.0.0/16 \
+    --next-hop-vpn-tunnel=production-vpn-tunnel \
+    --next-hop-vpn-tunnel-region=us-central1 \
+    --priority=1000 \
+    --description="Route to on-premises network"
+
+# Create route to internet via custom gateway
+gcloud compute routes create route-to-internet \
+    --network=production-vpc \
+    --destination-range=0.0.0.0/0 \
+    --next-hop-gateway=default-internet-gateway \
+    --priority=1000 \
+    --tags=internet-access
+
+# Create route via instance (for NAT or proxy)
+gcloud compute routes create route-via-nat-instance \
+    --network=production-vpc \
+    --destination-range=0.0.0.0/0 \
+    --next-hop-instance=nat-instance \
+    --next-hop-instance-zone=us-central1-a \
+    --priority=800 \
+    --tags=nat-route
+
+# Create route to another VPC via peering
+gcloud compute routes create route-to-shared-vpc \
+    --network=production-vpc \
+    --destination-range=10.200.0.0/16 \
+    --next-hop-gateway=default-internet-gateway \
+    --priority=1000 \
+    --description="Route to shared services VPC"
+
+# List all routes in network
+gcloud compute routes list --filter="network:production-vpc"
+
+# Describe specific route
+gcloud compute routes describe route-to-onprem
+
+# Delete custom route
+gcloud compute routes delete route-to-onprem
+
+# Create route with specific tags (applies only to tagged instances)
+gcloud compute routes create web-tier-route \
+    --network=production-vpc \
+    --destination-range=10.1.0.0/24 \
+    --next-hop-gateway=default-internet-gateway \
+    --priority=500 \
+    --tags=web-tier
+```
+
 #### Example Route Table
 | Destination CIDR   | Next Hop            | Type          | Notes                                                                 |
 |--------------------|---------------------|---------------|----------------------------------------------------------------------|

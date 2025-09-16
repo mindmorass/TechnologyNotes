@@ -77,6 +77,57 @@ dedicated_interconnect:
         advertised_route_priority: 100
 ```
 
+### gcloud Commands
+```bash
+# Create Cloud Router for Interconnect
+gcloud compute routers create interconnect-router \
+    --network=production-vpc \
+    --region=us-west1 \
+    --asn=65001 \
+    --description="Router for dedicated interconnect"
+
+# Create Dedicated Interconnect (requires pre-provisioned connection)
+gcloud compute interconnects create production-interconnect \
+    --customer-name="Your Company" \
+    --interconnect-type=DEDICATED \
+    --link-type=LINK_TYPE_ETHERNET_10G_LR \
+    --location=las-zone1-770 \
+    --requested-link-count=2 \
+    --description="Production dedicated interconnect"
+
+# Create VLAN attachment
+gcloud compute interconnects attachments create production-attachment \
+    --interconnect=production-interconnect \
+    --router=interconnect-router \
+    --region=us-west1 \
+    --vlan=100 \
+    --candidate-subnets=169.254.1.0/29
+
+# Add BGP peer to router
+gcloud compute routers add-interface interconnect-router \
+    --interface-name=production-interface \
+    --interconnect-attachment=production-attachment \
+    --region=us-west1
+
+gcloud compute routers add-bgp-peer interconnect-router \
+    --peer-name=production-bgp-peer \
+    --interface=production-interface \
+    --peer-ip-address=169.254.1.2 \
+    --peer-asn=65002 \
+    --region=us-west1 \
+    --advertised-route-priority=100
+
+# Check interconnect status
+gcloud compute interconnects describe production-interconnect
+
+# List all interconnects
+gcloud compute interconnects list
+
+# Monitor interconnect attachment
+gcloud compute interconnects attachments describe production-attachment \
+    --region=us-west1
+```
+
 ---
 
 ## Related Services

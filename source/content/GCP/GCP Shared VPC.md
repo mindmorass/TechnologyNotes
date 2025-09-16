@@ -65,6 +65,57 @@ shared_vpc_config:
       cidr: "10.2.0.0/24"
 ```
 
+### gcloud Commands
+```bash
+# Enable Shared VPC in the host project
+gcloud compute shared-vpc enable networking-host-project
+
+# Associate service projects with the Shared VPC host
+gcloud compute shared-vpc associated-projects add web-app-project \
+    --host-project=networking-host-project
+
+gcloud compute shared-vpc associated-projects add api-service-project \
+    --host-project=networking-host-project
+
+gcloud compute shared-vpc associated-projects add database-project \
+    --host-project=networking-host-project
+
+# Create shared subnets in the host project
+gcloud compute networks subnets create shared-web-subnet \
+    --project=networking-host-project \
+    --network=shared-vpc-network \
+    --range=10.1.0.0/24 \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+
+gcloud compute networks subnets create shared-app-subnet \
+    --project=networking-host-project \
+    --network=shared-vpc-network \
+    --range=10.2.0.0/24 \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+
+# Grant IAM permissions for service project users to use specific subnets
+gcloud projects add-iam-policy-binding networking-host-project \
+    --member="user:dev-team@company.com" \
+    --role="roles/compute.networkUser"
+
+gcloud compute networks subnets add-iam-policy-binding shared-web-subnet \
+    --project=networking-host-project \
+    --region=us-central1 \
+    --member="serviceAccount:web-app-service-account@web-app-project.iam.gserviceaccount.com" \
+    --role="roles/compute.networkUser"
+
+# List Shared VPC host projects
+gcloud compute shared-vpc get-host-project web-app-project
+
+# List associated service projects
+gcloud compute shared-vpc list-associated-resources networking-host-project
+
+# Disable Shared VPC (removes all associations)
+gcloud compute shared-vpc disable networking-host-project
+```
+
 ---
 
 ## Related Services

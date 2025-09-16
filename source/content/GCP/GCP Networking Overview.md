@@ -52,6 +52,32 @@ flowchart LR
 | Firewall Rules | Network security policies | Global/Regional | Yes |
 | Routes | Traffic routing rules | Global | Auto-created |
 
+### gcloud Commands
+```bash
+# List all networking resources
+gcloud compute networks list
+gcloud compute networks subnets list
+gcloud compute firewall-rules list
+gcloud compute routes list
+
+# Create basic networking setup
+gcloud compute networks create production-network --subnet-mode=custom
+gcloud compute networks subnets create production-subnet \
+    --network=production-network \
+    --range=10.0.0.0/24 \
+    --region=us-central1
+
+# Check networking connectivity
+gcloud compute networks get-effective-firewalls INSTANCE_NAME \
+    --zone=us-central1-a
+gcloud compute networks subnets get-iam-policy production-subnet \
+    --region=us-central1
+
+# Common networking operations
+gcloud compute ssh INSTANCE_NAME --zone=us-central1-a
+gcloud compute scp FILE_PATH INSTANCE_NAME:~/ --zone=us-central1-a
+```
+
 ---
 
 ## Related Services

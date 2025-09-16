@@ -63,6 +63,52 @@ advanced_peering:
   stack_type: "IPV4_ONLY"
 ```
 
+### gcloud Commands
+```bash
+# Create advanced VPC peering with custom route exchange
+gcloud compute networks peerings create enterprise-network-peering \
+    --network=vpc-production \
+    --peer-project=org-b-project \
+    --peer-network=vpc-services \
+    --auto-create-routes \
+    --import-custom-routes \
+    --export-custom-routes
+
+# Create peering with subnet route exchange control
+gcloud compute networks peerings create controlled-peering \
+    --network=vpc-production \
+    --peer-project=partner-project \
+    --peer-network=partner-vpc \
+    --auto-create-routes \
+    --import-subnet-routes-with-public-ip=false
+
+# Update existing peering to enable custom route import/export
+gcloud compute networks peerings update enterprise-network-peering \
+    --network=vpc-production \
+    --import-custom-routes \
+    --export-custom-routes
+
+# Create cross-organization peering (requires special permissions)
+gcloud compute networks peerings create cross-org-peering \
+    --network=internal-vpc \
+    --peer-project=external-org-project \
+    --peer-network=external-vpc \
+    --auto-create-routes
+
+# List peering connections with advanced details
+gcloud compute networks peerings list \
+    --network=vpc-production \
+    --format="table(name,peerNetwork,autoCreateRoutes,importCustomRoutes,exportCustomRoutes)"
+
+# Describe peering with detailed configuration
+gcloud compute networks peerings describe enterprise-network-peering \
+    --network=vpc-production
+
+# Delete advanced peering connection
+gcloud compute networks peerings delete enterprise-network-peering \
+    --network=vpc-production
+```
+
 ---
 
 ## Related Services

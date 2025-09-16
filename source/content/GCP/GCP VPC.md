@@ -87,6 +87,42 @@ vpc_config:
       private_google_access: true
 ```
 
+### gcloud Commands
+```bash
+# Create custom mode VPC
+gcloud compute networks create production-vpc \
+    --subnet-mode=custom \
+    --bgp-routing-mode=regional \
+    --description="Production VPC with custom subnets"
+
+# Create web tier subnet
+gcloud compute networks subnets create web-tier \
+    --network=production-vpc \
+    --range=10.0.1.0/24 \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+
+# Create app tier subnet
+gcloud compute networks subnets create app-tier \
+    --network=production-vpc \
+    --range=10.0.2.0/24 \
+    --region=us-central1 \
+    --enable-private-ip-google-access
+
+# Create firewall rule for internal communication
+gcloud compute firewall-rules create allow-internal \
+    --network=production-vpc \
+    --allow=tcp,udp,icmp \
+    --source-ranges=10.0.0.0/16 \
+    --description="Allow internal VPC communication"
+
+# List VPC networks
+gcloud compute networks list
+
+# Describe VPC details
+gcloud compute networks describe production-vpc
+```
+
 ---
 
 ## Related Services

@@ -74,6 +74,42 @@ subnet_config:
   enable_flow_logs: true
 ```
 
+### gcloud Commands
+```bash
+# Create subnet with secondary ranges (for GKE)
+gcloud compute networks subnets create multi-tier-subnet \
+    --network=production-vpc \
+    --range=10.0.1.0/24 \
+    --region=us-central1 \
+    --secondary-range=pods=10.1.0.0/16,services=10.2.0.0/20 \
+    --enable-private-ip-google-access \
+    --enable-flow-logs \
+    --logging-aggregation-interval=INTERVAL_5_SEC \
+    --logging-flow-sampling=0.5 \
+    --logging-metadata=INCLUDE_ALL_METADATA
+
+# Expand subnet IP range (can only increase)
+gcloud compute networks subnets expand-ip-range multi-tier-subnet \
+    --region=us-central1 \
+    --prefix-length=23
+
+# Add secondary range to existing subnet
+gcloud compute networks subnets update multi-tier-subnet \
+    --region=us-central1 \
+    --add-secondary-ranges=new-range=10.3.0.0/16
+
+# List subnets in region
+gcloud compute networks subnets list --regions=us-central1
+
+# Describe subnet details
+gcloud compute networks subnets describe multi-tier-subnet \
+    --region=us-central1
+
+# Delete subnet
+gcloud compute networks subnets delete multi-tier-subnet \
+    --region=us-central1
+```
+
 ---
 
 ## Related Services

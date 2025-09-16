@@ -76,6 +76,74 @@ psc_endpoint:
   target: "projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment"
 ```
 
+### gcloud Commands
+```bash
+# Service Producer Commands
+
+# Create NAT subnet for PSC (producer side)
+gcloud compute networks subnets create psc-nat-subnet \
+    --network=producer-vpc \
+    --range=10.100.0.0/24 \
+    --region=us-central1 \
+    --purpose=PRIVATE_SERVICE_CONNECT
+
+# Create internal load balancer (target for service attachment)
+gcloud compute forwarding-rules create my-internal-lb \
+    --load-balancing-scheme=INTERNAL \
+    --network=producer-vpc \
+    --subnet=producer-subnet \
+    --region=us-central1 \
+    --backend-service=my-backend-service \
+    --ip-protocol=TCP \
+    --ports=80
+
+# Create service attachment
+gcloud compute service-attachments create my-service-attachment \
+    --region=us-central1 \
+    --producer-forwarding-rule=my-internal-lb \
+    --connection-preference=ACCEPT_MANUAL \
+    --nat-subnets=psc-nat-subnet \
+    --description="Private service for internal APIs"
+
+# Accept consumer connection request
+gcloud compute service-attachments update my-service-attachment \
+    --region=us-central1 \
+    --consumer-accept-list=consumer-project-123=10
+
+# Service Consumer Commands
+
+# Create PSC endpoint to connect to service
+gcloud compute addresses create api-service-endpoint-ip \
+    --subnet=consumer-subnet \
+    --region=us-central1
+
+gcloud compute forwarding-rules create api-service-endpoint \
+    --load-balancing-scheme="" \
+    --network=consumer-vpc \
+    --address=api-service-endpoint-ip \
+    --target-service-attachment=projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment \
+    --region=us-central1
+
+# Create PSC endpoint for Google APIs
+gcloud compute addresses create google-apis-psc \
+    --subnet=consumer-subnet \
+    --region=us-central1
+
+gcloud compute forwarding-rules create google-apis-endpoint \
+    --load-balancing-scheme="" \
+    --network=consumer-vpc \
+    --address=google-apis-psc \
+    --target-service-attachment=projects/service-producers/regions/us-central1/serviceAttachments/all-apis \
+    --region=us-central1
+
+# List service attachments
+gcloud compute service-attachments list
+
+# Describe PSC endpoint
+gcloud compute forwarding-rules describe api-service-endpoint \
+    --region=us-central1
+```
+
 ---
 
 ## Related Services

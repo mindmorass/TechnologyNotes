@@ -59,6 +59,40 @@ peering_config:
   import_subnet_routes_with_public_ip: false
 ```
 
+### gcloud Commands
+```bash
+# Create VPC peering connection from production to shared services
+gcloud compute networks peerings create production-to-shared-services \
+    --network=vpc-production \
+    --peer-project=shared-project \
+    --peer-network=vpc-shared \
+    --auto-create-routes
+
+# Create the reverse peering connection (required for bidirectional connectivity)
+gcloud compute networks peerings create shared-services-to-production \
+    --network=vpc-shared \
+    --peer-project=prod-project \
+    --peer-network=vpc-production \
+    --auto-create-routes
+
+# Update peering to import/export custom routes
+gcloud compute networks peerings update production-to-shared-services \
+    --network=vpc-production \
+    --import-custom-routes \
+    --export-custom-routes
+
+# List all peering connections for a network
+gcloud compute networks peerings list --network=vpc-production
+
+# Describe specific peering connection
+gcloud compute networks peerings describe production-to-shared-services \
+    --network=vpc-production
+
+# Delete peering connection
+gcloud compute networks peerings delete production-to-shared-services \
+    --network=vpc-production
+```
+
 ---
 
 ## Related Services
