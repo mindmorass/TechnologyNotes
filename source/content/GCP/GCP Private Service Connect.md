@@ -1,15 +1,27 @@
 ---
 tags:
   - resource
+  - cloud-platform
+  - gcp-networking
 Area: "[[My Areas]]"
+Platform: "GCP"
+Service: "Private Service Connect"
 ---
-### **Explanation of GCP Private Service Connect**
 
-- **GCP VPC (Consumer)** → The VPC that needs to access a **private service**.
-- **GCP Private Service Connect** → A mechanism that **privately connects** a consumer VPC to a **service producer VPC**.
-- **GCP Private Service Connect Endpoint** → The actual endpoint that routes private traffic.
-- **GCP Load Balancer (Optional)** → Sometimes used to distribute incoming service requests.
+# GCP Private Service Connect
 
+## Overview
+
+- **GCP Private Service Connect** → Enables private connectivity to Google services, partner services, and your own services across VPC networks
+- **Key Features** → Private IP access, service-level connectivity, centralized endpoint management, no VPC peering required
+- **Use Cases** → Private API access, partner service integration, microservices connectivity, secure service consumption
+- **Scope** → Global service with regional endpoint deployment
+- **Integration** → Works with Google APIs, partner services, internal load balancers, and service mesh architectures
+
+
+---
+
+## Architecture Diagram
 
 ```mermaid
 flowchart TD
@@ -28,3 +40,93 @@ flowchart TD
   GCP_Private_Service_Connect -->|Can Use| GCP_Load_Balancer
 
 ```
+
+---
+
+## Configuration Examples
+
+### Private Service Connect Endpoint Types
+| Type | Purpose | Target | Use Case |
+|------|---------|--------|----------|
+| Google APIs | Access Google services privately | Cloud Storage, BigQuery, etc. | Private API access |
+| Published Services | Connect to partner services | Third-party SaaS | Partner integration |
+| Service Attachments | Access your own services | Internal load balancers | Microservices architecture |
+
+### Service Attachment Configuration
+```yaml
+# Service producer configuration
+service_attachment:
+  name: "my-service-attachment"
+  description: "Private service for internal APIs"
+  target_service: "https://www.googleapis.com/compute/v1/projects/my-project/regions/us-central1/forwardingRules/my-internal-lb"
+  connection_preference: "ACCEPT_MANUAL"
+  nat_subnets:
+    - "projects/my-project/regions/us-central1/subnetworks/psc-nat-subnet"
+  enable_proxy_protocol: false
+  consumer_accept_lists:
+    - project_id_or_num: "consumer-project-123"
+      connection_limit: 10
+
+# Consumer endpoint configuration
+psc_endpoint:
+  name: "api-service-endpoint"
+  description: "Private endpoint for API service"
+  network: "projects/consumer-project/global/networks/vpc-network"
+  subnet: "projects/consumer-project/regions/us-central1/subnetworks/consumer-subnet"
+  target: "projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment"
+```
+
+---
+
+## Related Services
+
+### Core Dependencies
+- [[GCP VPC]] - Consumer and producer networks
+- **Internal Load Balancer** - Target service for service attachments
+- **Cloud DNS** - Private DNS zones for endpoint resolution
+
+### Service Integration
+- **Google APIs** - Private access to Cloud Storage, BigQuery, etc.
+- **Partner Services** - Third-party SaaS and marketplace services
+- **Anthos Service Mesh** - Service-to-service communication
+
+### Alternative Connectivity
+- [[GCP VPC Peering]] - Network-level connectivity
+- **VPC Service Controls** - Security perimeter for services
+- **Cloud NAT** - Outbound internet access for private resources
+
+### Security and Management
+- **Cloud IAM** - Access control for endpoint management
+- **VPC Flow Logs** - Traffic monitoring and analysis
+- **Cloud Monitoring** - Endpoint health and performance
+
+### Cross-Platform Equivalents
+| GCP | AWS | Azure | Description |
+|-----|-----|-------|-------------|
+| Private Service Connect | PrivateLink | Private Link | Private service connectivity |
+| Service Attachment | VPC Endpoint Service | Private Link Service | Published service interface |
+| PSC Endpoint | VPC Endpoint | Private Endpoint | Consumer service access point |
+| Google APIs Access | VPC Endpoints for AWS Services | Service Endpoints | Private cloud service access |
+
+---
+
+## References
+
+### Official Documentation
+- [Private Service Connect Overview](https://cloud.google.com/vpc/docs/private-service-connect)
+- [Configure Private Service Connect](https://cloud.google.com/vpc/docs/configure-private-service-connect-services)
+- [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-service-connect-apis)
+- [Service Attachments](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)
+- [PSC Pricing](https://cloud.google.com/vpc/pricing#psc-pricing)
+
+### Third-Party Resources
+- [Medium - Private Service Connect Explained](https://medium.com/google-cloud/private-service-connect-in-gcp-explained)
+- [Stack Overflow - GCP Networking](https://stackoverflow.com/questions/tagged/google-cloud-networking)
+- [Reddit - GCP Community](https://reddit.com/r/googlecloud)
+- [YouTube - PSC Tutorials](https://youtube.com/results?search_query=gcp+private+service+connect)
+
+### Learning Resources
+- [Professional Cloud Network Engineer](https://cloud.google.com/certification/cloud-network-engineer)
+- [Advanced Networking Course](https://cloud.google.com/training/courses/networking-gcp)
+- [Service Mesh and Microservices](https://cloud.google.com/training/courses/anthos)
+- [Security Best Practices](https://cloud.google.com/security/best-practices#network-security)

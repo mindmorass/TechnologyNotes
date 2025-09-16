@@ -1,13 +1,22 @@
 ---
 tags:
   - resource
+  - cloud-platform
+  - gcp-networking
 Area: "[[My Areas]]"
+Platform: "GCP"
+Service: "VPC Network Peering"
 ---
-### **Explanation of GCP VPC Network Peering**
 
-- **GCP VPC A & GCP VPC B** → Two **separate VPCs** that want to communicate privately.
-- **GCP VPC Network Peering** → Allows **private connectivity** between **two GCP VPCs**, even across **different organizations or projects**.
-- **GCP Route Tables (A & B)** → Must be configured to **allow traffic routing** between the peered VPCs.
+# GCP VPC Network Peering
+
+## Overview
+
+- **GCP VPC Network Peering** → Advanced peering mechanism that enables sophisticated routing and connectivity between VPC networks
+- **Key Features** → Cross-organization support, advanced routing controls, custom route exchange, enhanced security options
+- **Use Cases** → Complex multi-VPC architectures, partner organization connectivity, advanced network topologies
+- **Scope** → Global service supporting cross-project and cross-organization peering
+- **Integration** → Works with advanced routing, custom policies, and enterprise-grade network controls
 
 ```mermaid
 flowchart TD
@@ -28,57 +37,77 @@ flowchart TD
 ```
 
 
-### Explanation of GCP Private Service Connect (PSC)
-
-- **Private Service Connect (PSC)** → Provides **private connectivity** between consumer and producer VPC networks over Google’s internal backbone.  
-- **Use cases** → Expose **Google APIs**, **partner services**, or your own **published services** privately within VPC.  
-- **Consumers** → Create PSC **endpoints** in their VPC to access a target service.  
-- **Producers** → Publish a service (e.g., internal or partner) that consumers can connect to.  
-- **Security** → Traffic stays within Google’s private network; IAM and firewall rules apply.  
-- **Difference vs Peering** → PSC is **service-level connectivity**, not network-level like VPC Peering.  
-
 ---
 
-```mermaid
-flowchart TD
-  subgraph ConsumerVPC["Consumer VPC"]
-    PSC_Endpoint("PSC Endpoint")
-    App("Consumer Application")
-  end
+## Configuration Examples
 
-  subgraph GoogleBackbone["Google Private Backbone"]
-    PSC_Service("Private Service Connect")
-  end
+### Advanced Peering Configuration
+| Parameter | Value | Description | Required |
+|-----------|-------|-------------|----------|
+| Peering Name | `advanced-network-peering` | Network peering identifier | Yes |
+| Source VPC | `vpc-network-a` | First VPC network | Yes |
+| Target VPC | `vpc-network-b` | Second VPC network | Yes |
+| Exchange Custom Routes | `true` | Exchange custom routing tables | No |
+| Exchange Subnet Routes | `true` | Exchange subnet-level routes | No |
 
-  subgraph ProducerVPC["Producer VPC"]
-    Service("Producer Service (e.g., API, Database)")
-  end
-
-  App --> PSC_Endpoint
-  PSC_Endpoint --> PSC_Service
-  PSC_Service --> Service
+### Enterprise Configuration
+```yaml
+# Example advanced VPC network peering
+advanced_peering:
+  name: "enterprise-network-peering"
+  source_network: "projects/org-a/global/networks/vpc-production"
+  target_network: "projects/org-b/global/networks/vpc-services"
+  exchange_subnet_routes: true
+  export_custom_routes: true
+  import_custom_routes: true
+  stack_type: "IPV4_ONLY"
 ```
 
 ---
 
-### Pages for this diagram
-- [GCP Private Service Connect](./gcp-private-service-connect.md)  
-- [GCP VPC](./gcp-vpc.md)  
-- [GCP Subnets](./gcp-subnets.md)  
-- [GCP Route Tables](./gcp-route-tables.md)  
-- [GCP Firewall Rules](./gcp-firewall-rules.md)  
-- [GCP VPC Peering](./gcp-vpc-peering.md)  
-- [GCP Cloud VPN](./gcp-cloud-vpn.md)  
-- [GCP Cloud Interconnect](./gcp-cloud-interconnect.md)  
+## Related Services
+
+### Core Dependencies
+- [[GCP VPC]] - Base networks being connected
+- [[GCP Route Tables]] - Advanced routing configuration and exchange
+- **GCP Firewall Rules** - Security policies for cross-network traffic
+
+### Peering Alternatives
+- [[GCP VPC Peering]] - Standard VPC-to-VPC connectivity
+- [[GCP Shared VPC]] - Network sharing within organizations
+- [[GCP Private Service Connect]] - Service-level private connectivity
+
+### Enterprise Features
+- **Organization Policies** - Governance and compliance controls
+- **IAM Policies** - Access control for peering operations
+- **Cloud Asset Inventory** - Track peering relationships
+
+### Cross-Platform Equivalents
+| GCP | AWS | Azure | Description |
+|-----|-----|-------|-------------|
+| VPC Network Peering | Transit Gateway | Virtual WAN | Advanced network connectivity |
+| Custom Route Exchange | Route Propagation | Route Tables | Dynamic routing |
+| Cross-Org Peering | Cross-Account TGW | Cross-Tenant Peering | Multi-organization networking |
 
 ---
 
-#### References
-#### Official
-- https://cloud.google.com/vpc/docs/private-service-connect  
-- https://cloud.google.com/vpc/docs/configure-private-service-connect-services  
-- https://cloud.google.com/vpc/docs/configure-private-service-connect-apis  
+## References
 
-#### Third-party
-- https://medium.com/google-cloud/private-service-connect-in-gcp-explained  
-- https://stackoverflow.com/questions/tagged/google-cloud-networking  
+### Official Documentation
+- [VPC Network Peering](https://cloud.google.com/vpc/docs/vpc-peering)
+- [Advanced Peering Configuration](https://cloud.google.com/vpc/docs/using-vpc-peering)
+- [Cross-Organization Peering](https://cloud.google.com/vpc/docs/vpc-peering#cross-org)
+- [Enterprise Networking](https://cloud.google.com/architecture/networking)
+- [Network Peering Pricing](https://cloud.google.com/vpc/pricing#vpc-peering)
+
+### Third-Party Resources
+- [Medium - Advanced GCP Networking](https://medium.com/google-cloud/advanced-gcp-networking)
+- [Stack Overflow - GCP Networking](https://stackoverflow.com/questions/tagged/google-cloud-networking)
+- [Reddit - GCP Enterprise](https://reddit.com/r/googlecloud)
+- [YouTube - Enterprise Networking](https://youtube.com/results?search_query=gcp+enterprise+networking)
+
+### Learning Resources
+- [Professional Cloud Network Engineer](https://cloud.google.com/certification/cloud-network-engineer)
+- [Advanced Networking Labs](https://cloud.google.com/training/courses/networking-gcp)
+- [Enterprise Architecture Patterns](https://cloud.google.com/architecture/networking)
+- [Multi-Organization Setup](https://cloud.google.com/docs/enterprise/setup-checklist)  

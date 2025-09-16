@@ -1,12 +1,26 @@
-### Explanation of GCP Route Tables
+---
+tags:
+  - resource
+  - cloud-platform
+  - gcp-networking
+Area: "[[My Areas]]"
+Platform: "GCP"
+Service: "Route Tables"
+---
 
-- **GCP Route Tables** → Collections of **routing rules** applied to each VPC network.  
-- **Routes** → Define how packets are forwarded (destination CIDR → next hop).  
-- **Default Routes** → Every VPC has default routes to the internet (0.0.0.0/0 via default internet gateway) and to internal IP ranges.  
-- **Custom Routes** → Added manually or automatically (e.g., via VPC Peering, Shared VPC, Cloud VPN, or Interconnect).  
-- **In Peering** → Routes must be **exchanged between peered VPCs** for connectivity to work.  
+# GCP Route Tables
+
+## Overview
+
+- **GCP Route Tables** → Collections of routing rules that determine how packets are forwarded within and outside VPC networks
+- **Key Features** → Automatic system routes, custom route creation, priority-based routing, dynamic route exchange
+- **Use Cases** → Traffic steering, hybrid connectivity routing, multi-VPC communication, network segmentation
+- **Scope** → Global routing rules applied to VPC networks with regional and zonal specificity
+- **Integration** → Works with VPC Peering, Cloud VPN, Cloud Interconnect, and Cloud Router for dynamic routing
 
 ---
+
+## Configuration Examples
 
 #### Example Route Table
 | Destination CIDR   | Next Hop            | Type          | Notes                                                                 |
@@ -24,19 +38,54 @@
 
 ---
 
-### Pages for this diagram
- 
-- [[GCP VPC Peering]]
-- [GCP VPC A](./gcp-vpc-a.md)
-- [GCP VPC B](./gcp-vpc-b.md)
+---
+
+## Related Services
+
+### Core Dependencies
+- [[GCP VPC]] - Parent network where routes are applied
+- [[GCP Subnets]] - Regional components affected by routing decisions
+- **GCP Cloud Router** - Manages dynamic BGP routing for hybrid connectivity
+
+### Routing Integrations
+- [[GCP VPC Peering]] - Automatic route exchange between peered VPCs
+- [[GCP Cloud VPN]] - Static and dynamic routes for on-premises connectivity
+- [[GCP Cloud Interconnect]] - BGP routing for dedicated connections
+- **GCP Load Balancers** - Use routes for traffic distribution
+
+### Network Services
+- **GCP Firewall Rules** - Applied after routing decisions are made
+- **GCP Cloud NAT** - Routes traffic through NAT gateways
+- [[GCP Private Service Connect]] - Private service routing
+
+### Cross-Platform Equivalents
+| GCP | AWS | Azure | Description |
+|-----|-----|-------|-------------|
+| Routes | Route Tables | Route Tables | Traffic forwarding rules |
+| Cloud Router | BGP Router | Virtual Network Gateway | Dynamic routing |
+| System Routes | Local Routes | System Routes | Automatic network routes |
+| Custom Routes | Custom Routes | User-defined Routes | Manual routing rules |
 
 ---
-#### References
-#### Official
-- https://cloud.google.com/vpc/docs/routes
-- https://cloud.google.com/vpc/docs/vpc-peering#routing
 
-#### Third-party
-- https://medium.com/google-cloud/understanding-google-cloud-vpc-networking-routes-1d2f9f7c7f67
-- https://stackoverflow.com/questions/tagged/google-cloud-networking
+## References
+
+### Official Documentation
+- [Routes Overview](https://cloud.google.com/vpc/docs/routes)
+- [VPC Peering Routing](https://cloud.google.com/vpc/docs/vpc-peering#routing)
+- [Cloud Router](https://cloud.google.com/network-connectivity/docs/router)
+- [Hybrid Connectivity Routing](https://cloud.google.com/hybrid-connectivity/docs/concepts/routing)
+- [Route Priorities](https://cloud.google.com/vpc/docs/routes#route-priority)
+
+### Third-Party Resources
+- [Medium - GCP Routing Deep Dive](https://medium.com/google-cloud/understanding-google-cloud-vpc-networking-routes-1d2f9f7c7f67)
+- [Stack Overflow - GCP Networking](https://stackoverflow.com/questions/tagged/google-cloud-networking)
+- [Reddit - GCP Community](https://reddit.com/r/googlecloud)
+- [YouTube - GCP Routing Tutorials](https://youtube.com/results?search_query=gcp+routing+tutorial)
+
+### Learning Resources
+- [Google Cloud Network Engineer Path](https://cloud.google.com/training/networking)
+- [Professional Cloud Network Engineer Certification](https://cloud.google.com/certification/cloud-network-engineer)
+- [Advanced Networking Labs](https://cloud.google.com/training/courses/networking-gcp)
+- [Routing Best Practices](https://cloud.google.com/architecture/best-practices-vpc-design#routing)
 

@@ -1,17 +1,26 @@
 ---
 tags:
   - resource
+  - cloud-platform
+  - gcp-networking
 Area: "[[My Areas]]"
+Platform: "GCP"
+Service: "Virtual Private Cloud (VPC)"
 ---
-### Explanation of GCP VPC
 
-- **GCP VPC** → A **global**, logically isolated virtual network spanning all GCP regions in the project.  
-- **Subnets** → **Regional** IP ranges inside the VPC. You choose ranges and create them per region.  
-- **Routing** → VPC has **system** and **custom** routes that control traffic flow within and outside the VPC.  
-- **Firewall rules** → **Stateful**, network-level rules that allow or deny traffic by tags or service accounts.  
-- **Connectivity options** → Peering, Shared VPC, Cloud VPN, Cloud Interconnect, Private Service Connect.  
+# GCP Virtual Private Cloud (VPC)
+
+## Overview
+
+- **GCP VPC** → A global, logically isolated virtual network spanning all GCP regions in the project
+- **Key Features** → Global scope, regional subnets, custom routing, stateful firewall rules, multiple connectivity options
+- **Use Cases** → Host applications, isolate workloads, connect to on-premises, multi-region deployments, microservices architecture
+- **Scope** → Global resource with regional subnet components
+- **Integration** → Foundation for Compute Engine, GKE, Cloud SQL, Load Balancers, and all compute services
 
 ---
+
+## Architecture Diagram
 
 ```mermaid
 flowchart TD
@@ -48,29 +57,83 @@ flowchart TD
 ```
 
 
-### Pages for this diagram
+---
 
-- [[GCP VPC]]
-- [[GCP Subnets]]
-- [[GCP Route Tables]]
-- GCP Firewall Rules
-- [[GCP VPC Peering]]
-- [[GCP Shared VPC]]
-- GCP Cloud VPN
-- GCP Cloud Interconnect
-- [[GCP Private Service Connect]]
+## Configuration Examples
+
+### Basic VPC Configuration
+| Parameter | Value | Description | Required |
+|-----------|-------|-------------|----------|
+| Name | `production-vpc` | VPC network name | Yes |
+| Subnet Mode | `custom` | Auto or custom subnet creation | Yes |
+| BGP Routing Mode | `regional` | Regional or global routing | No |
+| MTU | `1460` | Maximum transmission unit | No |
+
+### Advanced Configuration
+```yaml
+# Example VPC configuration using gcloud CLI
+vpc_config:
+  name: "production-vpc"
+  subnet_mode: "custom"
+  bgp_routing_mode: "regional"
+  subnets:
+    - name: "web-tier"
+      region: "us-central1"
+      range: "10.0.1.0/24"
+      private_google_access: true
+    - name: "app-tier"
+      region: "us-central1"
+      range: "10.0.2.0/24"
+      private_google_access: true
+```
 
 ---
 
-#### References
+## Related Services
 
-#### Official
+### Core Dependencies
+- [[GCP Subnets]] - Regional IP ranges within the VPC
+- [[GCP Route Tables]] - Control traffic flow and routing decisions
+- **GCP Firewall Rules** - Network-level security and access control
 
-- [https://cloud.google.com/vpc/docs/vpc](https://cloud.google.com/vpc/docs/vpc)
-- https://cloud.google.com/vpc/docs/subnets
-- https://cloud.google.com/vpc/docs/routes
-- https://cloud.google.com/vpc/docs/firewalls
-#### Third-party
+### Connectivity Options
+- [[GCP VPC Peering]] - Connect to other VPCs privately
+- [[GCP Shared VPC]] - Share networking across multiple projects
+- [[GCP Cloud VPN]] - Secure connection to on-premises networks
+- [[GCP Cloud Interconnect]] - Dedicated private connection to on-premises
+- [[GCP Private Service Connect]] - Private access to Google and partner services
 
-- [https://stackoverflow.com/questions/tagged/google-cloud-networking](https://stackoverflow.com/questions/tagged/google-cloud-networking)
-- https://medium.com/tag/google-cloud-networking
+### VPC Types
+- [[GCP Auto Mode VPC]] - Automatically created subnets in each region
+- [[GCP Custom Mode VPC]] - Manually configured subnets and IP ranges
+
+### Cross-Platform Equivalents
+| GCP | AWS | Azure | Description |
+|-----|-----|-------|-------------|
+| VPC | VPC | Virtual Network | Logically isolated network |
+| Subnet | Subnet | Subnet | Regional IP address ranges |
+| Firewall Rules | Security Groups | Network Security Groups | Network access control |
+| VPC Peering | VPC Peering | VNet Peering | Cross-network connectivity |
+
+---
+
+## References
+
+### Official Documentation
+- [VPC Overview](https://cloud.google.com/vpc/docs/vpc)
+- [Subnet Configuration](https://cloud.google.com/vpc/docs/subnets)
+- [Route Tables](https://cloud.google.com/vpc/docs/routes)
+- [Firewall Rules](https://cloud.google.com/vpc/docs/firewalls)
+- [VPC Pricing](https://cloud.google.com/vpc/pricing)
+
+### Third-Party Resources
+- [Stack Overflow - GCP Networking](https://stackoverflow.com/questions/tagged/google-cloud-networking)
+- [Medium - GCP VPC Articles](https://medium.com/tag/google-cloud-vpc)
+- [Reddit - GCP Community](https://reddit.com/r/googlecloud)
+- [YouTube - GCP VPC Tutorials](https://youtube.com/results?search_query=gcp+vpc+tutorial)
+
+### Learning Resources
+- [Google Cloud Network Engineer Path](https://cloud.google.com/training/networking)
+- [Professional Cloud Network Engineer Certification](https://cloud.google.com/certification/cloud-network-engineer)
+- [VPC Hands-on Labs](https://cloud.google.com/training/courses/networking-gcp)
+- [Architecture Center - VPC Patterns](https://cloud.google.com/architecture/best-practices-vpc-design)
