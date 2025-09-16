@@ -1,0 +1,13 @@
+services:
+  quartz:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quartz
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/app
+    command: ["npx", "quartz", "build", "--serve"]
+    restart: unless-stopped
+
