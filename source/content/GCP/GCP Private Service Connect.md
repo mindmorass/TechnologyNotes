@@ -52,31 +52,7 @@ flowchart TD
 | Published Services | Connect to partner services | Third-party SaaS | Partner integration |
 | Service Attachments | Access your own services | Internal load balancers | Microservices architecture |
 
-### Service Attachment Configuration
-```yaml
-# Service producer configuration
-service_attachment:
-  name: "my-service-attachment"
-  description: "Private service for internal APIs"
-  target_service: "https://www.googleapis.com/compute/v1/projects/my-project/regions/us-central1/forwardingRules/my-internal-lb"
-  connection_preference: "ACCEPT_MANUAL"
-  nat_subnets:
-    - "projects/my-project/regions/us-central1/subnetworks/psc-nat-subnet"
-  enable_proxy_protocol: false
-  consumer_accept_lists:
-    - project_id_or_num: "consumer-project-123"
-      connection_limit: 10
-
-# Consumer endpoint configuration
-psc_endpoint:
-  name: "api-service-endpoint"
-  description: "Private endpoint for API service"
-  network: "projects/consumer-project/global/networks/vpc-network"
-  subnet: "projects/consumer-project/regions/us-central1/subnetworks/consumer-subnet"
-  target: "projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment"
-```
-
-### gcloud Commands
+> [!example]- gcloud CLI Commands
 ```bash
 # Service Producer Commands
 
@@ -143,6 +119,395 @@ gcloud compute service-attachments list
 gcloud compute forwarding-rules describe api-service-endpoint \
     --region=us-central1
 ```
+
+> [!code]- Terraform Configuration
+> ```hcl
+> # Service Producer Configuration
+> 
+> # Create NAT subnet for Private Service Connect
+> resource "google_compute_subnetwork" "psc_nat_subnet" {
+>   name          = "psc-nat-subnet"
+>   ip_cidr_range = "10.100.0.0/24"
+>   region        = "us-central1"
+>   network       = google_compute_network.producer_vpc.id
+>   purpose       = "PRIVATE_SERVICE_CONNECT"
+> }
+> 
+> # Create internal load balancer (target for service attachment)
+> resource "google_compute_forwarding_rule" "internal_lb" {
+>   name                  = "my-internal-lb"
+>   region               = "us-central1"
+>   load_balancing_scheme = "INTERNAL"
+>   backend_service      = google_compute_region_backend_service.backend.id
+>   all_ports            = true
+>   network              = google_compute_network.producer_vpc.id
+>   subnetwork           = google_compute_subnetwork.producer_subnet.id
+> }
+> 
+> # Create service attachment
+> resource "google_compute_service_attachment" "my_service" {
+>   name        = "my-service-attachment"
+>   region      = "us-central1"
+>   description = "Private service for internal APIs"
+>   
+>   target_service          = google_compute_forwarding_rule.internal_lb.id
+>   connection_preference   = "ACCEPT_MANUAL"
+>   nat_subnets            = [google_compute_subnetwork.psc_nat_subnet.id]
+>   enable_proxy_protocol  = false
+>   
+>   consumer_accept_lists {
+>     project_id_or_num = "consumer-project-123"
+>     connection_limit  = 10
+>   }
+> }
+> 
+> # Service Consumer Configuration
+> 
+> # Reserve IP address for PSC endpoint
+> resource "google_compute_address" "psc_endpoint_ip" {
+>   name         = "api-service-endpoint-ip"
+>   subnetwork   = google_compute_subnetwork.consumer_subnet.id
+>   address_type = "INTERNAL"
+>   region       = "us-central1"
+> }
+> 
+> # Create PSC endpoint
+> resource "google_compute_forwarding_rule" "psc_endpoint" {
+>   name   = "api-service-endpoint"
+>   region = "us-central1"
+>   
+>   load_balancing_scheme = ""
+>   network              = google_compute_network.consumer_vpc.id
+>   ip_address           = google_compute_address.psc_endpoint_ip.id
+>   target               = "projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment"
+> }
+> 
+> # Create PSC endpoint for Google APIs
+> resource "google_compute_address" "google_apis_ip" {
+>   name         = "google-apis-psc"
+>   subnetwork   = google_compute_subnetwork.consumer_subnet.id
+>   address_type = "INTERNAL"
+>   region       = "us-central1"
+> }
+> 
+> resource "google_compute_forwarding_rule" "google_apis_endpoint" {
+>   name   = "google-apis-endpoint"
+>   region = "us-central1"
+>   
+>   load_balancing_scheme = ""
+>   network              = google_compute_network.consumer_vpc.id
+>   ip_address           = google_compute_address.google_apis_ip.id
+>   target               = "all-apis"
+> }
+> ```
+
+> [!note]- CDKTF (CDK for Terraform)
+> Choose your preferred programming language for Infrastructure as Code:
+> 
+> > [!example]- Python CDKTF
+> > ```python
+> > from cdktf import App, TerraformStack
+> > from cdktf_cdktf_provider_google import provider, compute_subnetwork, compute_forwarding_rule, compute_service_attachment, compute_address
+> > 
+> > class PrivateServiceConnectStack(TerraformStack):
+> >     def __init__(self, scope, id):
+> >         super().__init__(scope, id)
+> > 
+> >         provider.GoogleProvider(self, "google",
+> >             project="my-project", region="us-central1")
+> > 
+> >         # Service Producer Configuration
+> >         # Create NAT subnet for PSC
+> >         psc_nat_subnet = compute_subnetwork.ComputeSubnetwork(
+> >             self, "psc_nat_subnet",
+> >             name="psc-nat-subnet",
+> >             ip_cidr_range="10.100.0.0/24",
+> >             region="us-central1",
+> >             network="producer-vpc",
+> >             purpose="PRIVATE_SERVICE_CONNECT"
+> >         )
+> > 
+> >         # Create internal load balancer
+> >         internal_lb = compute_forwarding_rule.ComputeForwardingRule(
+> >             self, "internal_lb",
+> >             name="my-internal-lb",
+> >             region="us-central1",
+> >             load_balancing_scheme="INTERNAL",
+> >             backend_service="my-backend-service",
+> >             all_ports=True,
+> >             network="producer-vpc",
+> >             subnetwork="producer-subnet"
+> >         )
+> > 
+> >         # Create service attachment
+> >         service_attachment = compute_service_attachment.ComputeServiceAttachment(
+> >             self, "my_service",
+> >             name="my-service-attachment",
+> >             region="us-central1",
+> >             description="Private service for internal APIs",
+> >             target_service=internal_lb.id,
+> >             connection_preference="ACCEPT_MANUAL",
+> >             nat_subnets=[psc_nat_subnet.id],
+> >             enable_proxy_protocol=False,
+> >             consumer_accept_lists=[{
+> >                 "project_id_or_num": "consumer-project-123",
+> >                 "connection_limit": 10
+> >             }]
+> >         )
+> > 
+> >         # Service Consumer Configuration
+> >         # Reserve IP for PSC endpoint
+> >         endpoint_ip = compute_address.ComputeAddress(
+> >             self, "psc_endpoint_ip",
+> >             name="api-service-endpoint-ip",
+> >             subnetwork="consumer-subnet",
+> >             address_type="INTERNAL",
+> >             region="us-central1"
+> >         )
+> > 
+> >         # Create PSC endpoint
+> >         psc_endpoint = compute_forwarding_rule.ComputeForwardingRule(
+> >             self, "psc_endpoint",
+> >             name="api-service-endpoint",
+> >             region="us-central1",
+> >             load_balancing_scheme="",
+> >             network="consumer-vpc",
+> >             ip_address=endpoint_ip.id,
+> >             target="projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment"
+> >         )
+> > 
+> > app = App()
+> > PrivateServiceConnectStack(app, "private-service-connect")
+> > app.synth()
+> > ```
+> 
+> > [!example]- TypeScript CDKTF
+> > ```typescript
+> > import { Construct } from "constructs";
+> > import { App, TerraformStack } from "cdktf";
+> > import { GoogleProvider } from "@cdktf/provider-google/lib/provider";
+> > import { ComputeSubnetwork } from "@cdktf/provider-google/lib/compute-subnetwork";
+> > import { ComputeForwardingRule } from "@cdktf/provider-google/lib/compute-forwarding-rule";
+> > import { ComputeServiceAttachment } from "@cdktf/provider-google/lib/compute-service-attachment";
+> > import { ComputeAddress } from "@cdktf/provider-google/lib/compute-address";
+> > 
+> > class PrivateServiceConnectStack extends TerraformStack {
+> >   constructor(scope: Construct, id: string) {
+> >     super(scope, id);
+> > 
+> >     new GoogleProvider(this, "google", {
+> >       project: "my-project",
+> >       region: "us-central1",
+> >     });
+> > 
+> >     // Service Producer Configuration
+> >     const pscNatSubnet = new ComputeSubnetwork(this, "pscNatSubnet", {
+> >       name: "psc-nat-subnet",
+> >       ipCidrRange: "10.100.0.0/24",
+> >       region: "us-central1",
+> >       network: "producer-vpc",
+> >       purpose: "PRIVATE_SERVICE_CONNECT",
+> >     });
+> > 
+> >     const internalLb = new ComputeForwardingRule(this, "internalLb", {
+> >       name: "my-internal-lb",
+> >       region: "us-central1",
+> >       loadBalancingScheme: "INTERNAL",
+> >       backendService: "my-backend-service",
+> >       allPorts: true,
+> >       network: "producer-vpc",
+> >       subnetwork: "producer-subnet",
+> >     });
+> > 
+> >     const serviceAttachment = new ComputeServiceAttachment(this, "myService", {
+> >       name: "my-service-attachment",
+> >       region: "us-central1",
+> >       description: "Private service for internal APIs",
+> >       targetService: internalLb.id,
+> >       connectionPreference: "ACCEPT_MANUAL",
+> >       natSubnets: [pscNatSubnet.id],
+> >       enableProxyProtocol: false,
+> >       consumerAcceptLists: [{
+> >         projectIdOrNum: "consumer-project-123",
+> >         connectionLimit: 10,
+> >       }],
+> >     });
+> > 
+> >     // Service Consumer Configuration
+> >     const endpointIp = new ComputeAddress(this, "pscEndpointIp", {
+> >       name: "api-service-endpoint-ip",
+> >       subnetwork: "consumer-subnet",
+> >       addressType: "INTERNAL",
+> >       region: "us-central1",
+> >     });
+> > 
+> >     const pscEndpoint = new ComputeForwardingRule(this, "pscEndpoint", {
+> >       name: "api-service-endpoint",
+> >       region: "us-central1",
+> >       loadBalancingScheme: "",
+> >       network: "consumer-vpc",
+> >       ipAddress: endpointIp.id,
+> >       target: "projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment",
+> >     });
+> >   }
+> > }
+> > 
+> > const app = new App();
+> > new PrivateServiceConnectStack(app, "private-service-connect");
+> > app.synth();
+> > ```
+> 
+> > [!example]- Go CDKTF
+> > ```go
+> > package main
+> > 
+> > import (
+> >     "github.com/aws/constructs-go/constructs/v10"
+> >     "github.com/hashicorp/terraform-cdk-go/cdktf"
+> >     google "github.com/cdktf/cdktf-provider-google-go/google/v13"
+> >     "github.com/cdktf/cdktf-provider-google-go/google/v13/computesubnetwork"
+> >     "github.com/cdktf/cdktf-provider-google-go/google/v13/computeforwardingrule"
+> >     "github.com/cdktf/cdktf-provider-google-go/google/v13/computeserviceattachment"
+> >     "github.com/cdktf/cdktf-provider-google-go/google/v13/computeaddress"
+> > )
+> > 
+> > func NewPrivateServiceConnectStack(scope constructs.Construct, id string) cdktf.TerraformStack {
+> >     stack := cdktf.NewTerraformStack(scope, &id)
+> > 
+> >     google.NewGoogleProvider(stack, jsii.String("google"), &google.GoogleProviderConfig{
+> >         Project: jsii.String("my-project"), Region: jsii.String("us-central1")})
+> > 
+> >     // Service Producer Configuration
+> >     pscNatSubnet := computesubnetwork.NewComputeSubnetwork(stack, jsii.String("pscNatSubnet"), 
+> >         &computesubnetwork.ComputeSubnetworkConfig{
+> >             Name: jsii.String("psc-nat-subnet"),
+> >             IpCidrRange: jsii.String("10.100.0.0/24"),
+> >             Region: jsii.String("us-central1"),
+> >             Network: jsii.String("producer-vpc"),
+> >             Purpose: jsii.String("PRIVATE_SERVICE_CONNECT")})
+> > 
+> >     internalLb := computeforwardingrule.NewComputeForwardingRule(stack, jsii.String("internalLb"), 
+> >         &computeforwardingrule.ComputeForwardingRuleConfig{
+> >             Name: jsii.String("my-internal-lb"),
+> >             Region: jsii.String("us-central1"),
+> >             LoadBalancingScheme: jsii.String("INTERNAL"),
+> >             BackendService: jsii.String("my-backend-service"),
+> >             AllPorts: jsii.Bool(true),
+> >             Network: jsii.String("producer-vpc"),
+> >             Subnetwork: jsii.String("producer-subnet")})
+> > 
+> >     computeserviceattachment.NewComputeServiceAttachment(stack, jsii.String("myService"), 
+> >         &computeserviceattachment.ComputeServiceAttachmentConfig{
+> >             Name: jsii.String("my-service-attachment"),
+> >             Region: jsii.String("us-central1"),
+> >             Description: jsii.String("Private service for internal APIs"),
+> >             TargetService: internalLb.Id(),
+> >             ConnectionPreference: jsii.String("ACCEPT_MANUAL"),
+> >             NatSubnets: &[]*string{pscNatSubnet.Id()},
+> >             EnableProxyProtocol: jsii.Bool(false),
+> >             ConsumerAcceptLists: &[]*computeserviceattachment.ComputeServiceAttachmentConsumerAcceptLists{
+> >                 {ProjectIdOrNum: jsii.String("consumer-project-123"), ConnectionLimit: jsii.Number(10)}}})
+> > 
+> >     // Service Consumer Configuration
+> >     endpointIp := computeaddress.NewComputeAddress(stack, jsii.String("pscEndpointIp"), 
+> >         &computeaddress.ComputeAddressConfig{
+> >             Name: jsii.String("api-service-endpoint-ip"),
+> >             Subnetwork: jsii.String("consumer-subnet"),
+> >             AddressType: jsii.String("INTERNAL"),
+> >             Region: jsii.String("us-central1")})
+> > 
+> >     computeforwardingrule.NewComputeForwardingRule(stack, jsii.String("pscEndpoint"), 
+> >         &computeforwardingrule.ComputeForwardingRuleConfig{
+> >             Name: jsii.String("api-service-endpoint"),
+> >             Region: jsii.String("us-central1"),
+> >             LoadBalancingScheme: jsii.String(""),
+> >             Network: jsii.String("consumer-vpc"),
+> >             IpAddress: endpointIp.Id(),
+> >             Target: jsii.String("projects/producer-project/regions/us-central1/serviceAttachments/my-service-attachment")})
+> > 
+> >     return stack
+> > }
+> > 
+> > func main() {
+> >     app := cdktf.NewApp(nil)
+> >     NewPrivateServiceConnectStack(app, "private-service-connect")
+> >     app.Synth()
+> > }
+> > ```
+
+> [!info]- Console UI Steps
+> ### Setting Up Private Service Connect in Google Cloud Console
+> 
+> **Service Producer Setup (Publishing a Service)**
+> 
+> **Step 1: Create NAT Subnet for PSC**
+> 1. Navigate to **VPC network** → **VPC networks** → Select producer VPC
+> 2. Click **Add Subnet**
+> 3. **Name**: `psc-nat-subnet`
+> 4. **Region**: `us-central1`
+> 5. **IP address range**: `10.100.0.0/24`
+> 6. **Purpose**: Select **Private Service Connect**
+> 7. Click **Add**
+> 
+> **Step 2: Create Internal Load Balancer (Target Service)**
+> 1. Navigate to **Network services** → **Load balancing**
+> 2. Click **Create Load Balancer**
+> 3. Choose **Application Load Balancer (HTTP/HTTPS)** → **Start configuration**
+> 4. **Internet facing or internal only**: **Only between my VMs**
+> 5. Configure backend services, health checks, and frontend
+> 6. Note the forwarding rule name/ID for service attachment
+> 
+> **Step 3: Create Service Attachment**
+> 1. Navigate to **Network services** → **Private Service Connect** → **Published services**
+> 2. Click **Publish service**
+> 3. **Service attachment name**: `my-service-attachment`
+> 4. **Region**: `us-central1`
+> 5. **Target service**: Select your internal load balancer
+> 6. **Connection preference**: **Accept connections manually**
+> 7. **NAT subnets**: Select `psc-nat-subnet`
+> 8. **Accept list**: Add consumer project ID with connection limit
+> 9. Click **Publish service**
+> 
+> **Service Consumer Setup (Connecting to a Service)**
+> 
+> **Step 4: Create Private IP Address**
+> 1. Navigate to **VPC network** → **IP addresses**
+> 2. Click **Reserve static address**
+> 3. **Name**: `api-service-endpoint-ip`
+> 4. **IP version**: IPv4
+> 5. **Type**: Internal
+> 6. **Region**: `us-central1`
+> 7. **Subnet**: Select consumer subnet
+> 8. Click **Reserve**
+> 
+> **Step 5: Create PSC Endpoint**
+> 1. Navigate to **Network services** → **Private Service Connect** → **Connected endpoints**
+> 2. Click **Connect endpoint**
+> 3. **Target**: **Published service**
+> 4. **Target service**: Enter service attachment URI or select from list
+> 5. **Endpoint name**: `api-service-endpoint`
+> 6. **Network**: Select consumer VPC
+> 7. **Subnetwork**: Select consumer subnet
+> 8. **IP address**: Select reserved IP address
+> 9. Click **Add endpoint**
+> 
+> **Step 6: Connect to Google APIs (Optional)**
+> 1. Navigate to **Network services** → **Private Service Connect** → **Connected endpoints**
+> 2. Click **Connect endpoint**
+> 3. **Target**: **Google APIs**
+> 4. **Endpoint name**: `google-apis-endpoint`
+> 5. **Network**: Select consumer VPC
+> 6. **Subnetwork**: Select consumer subnet
+> 7. **IP address**: Reserve or select existing internal IP
+> 8. Select specific APIs or choose **All supported Google APIs**
+> 9. Click **Add endpoint**
+> 
+> **Step 7: Test Connectivity**
+> 1. Create test VM in consumer VPC
+> 2. Test connectivity to PSC endpoint IP address
+> 3. Verify DNS resolution if using private DNS zones
+> 4. Monitor connection status in **Private Service Connect** console
+> 5. Check metrics in **Cloud Monitoring**
 
 ---
 

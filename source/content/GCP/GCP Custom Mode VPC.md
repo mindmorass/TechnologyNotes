@@ -80,7 +80,7 @@ custom_vpc:
       private_google_access: true
 ```
 
-### gcloud Commands
+> [!example]- gcloud CLI Commands
 ```bash
 # Create custom mode VPC
 gcloud compute networks create production-custom-vpc \

@@ -13,15 +13,30 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "test tabs.md",
+                "file": "GCP/GCP Subnets.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "GCP Subnets"
+            }
+          },
+          {
+            "id": "c51f3ec1f795fb8c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "GCP/GCP Private Service Connect.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "test tabs"
+              "title": "GCP Private Service Connect"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -170,19 +185,25 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "fd22581b5e1969c7",
+  "active": "c51f3ec1f795fb8c",
   "lastOpenFiles": [
-    "GCP/Untitled.md",
-    "test tabs.md",
-    "GCP/GCP VPC Peering.md",
-    "index.md",
-    "GCP/GCP Shared VPC.md",
-    "GCP/GCP Private Service Connect.md",
-    "GCP/GCP Networking Overview.md",
-    "GCP/GCP Custom Mode VPC.md",
     "GCP/GCP Cloud Interconnect.md",
     "GCP/GCP Auto Mode VPC.md",
+    "GCP/GCP Networking Overview.md",
+    "GCP/GCP Private Service Connect.md",
+    "GCP/GCP Custom Mode VPC.md",
+    "GCP/GCP Cloud VPN.md",
+    "GCP/GCP VPC Peering.md",
+    "GCP/GCP Subnets.md",
     "GCP/GCP VPC.md",
+    "GCP/GCP Shared VPC.md",
+    "GCP/GCP VPC Network Peering.md",
+    "TMP.md",
+    "TEMPLATES/Cloud Platform Template.md",
+    "test tabs.md",
+    "test",
+    "GCP/Untitled.md",
+    "index.md",
     "GCP/GCP Route Tables.md",
     "GCP Interconnect Location.md",
     "category-folder/index.md",
